@@ -275,7 +275,7 @@ class Markov_fit:
 
         def get_cost(X):
             tfin, sP = X[0], X[1:]
-            _run_params = run_params.copy()
+            _run_params = self.run_params.copy()
             _run_params["tfin"] = tfin
             mrkvS.signalling_parameters = sP.reshape(mrkvS.signalling_parameters.shape)
             mrkvS.make_transition_matrices()
@@ -283,9 +283,9 @@ class Markov_fit:
             mrkvS.simulate()
             mrkvS.get_terminal_state()
             total_proportions = {}
-            for data_name in data_names:
+            for data_name in self.data_names:
                 total_proportions[data_name] = np.zeros_like(mrkvS.final_vals[0])
-            for state_name in state_names:
+            for state_name in self.state_names:
                 total_proportions[self.dictionary[state_name]] += mrkvS.final_vals[mrkvS.markov.states.index(state_name)]
             cost = 0
             for key, val in total_proportions.items():
@@ -295,18 +295,19 @@ class Markov_fit:
         mrkvS.set_initial_signalling_params()
         sP0 = mrkvS.signalling_parameters.ravel()
         X0 = np.zeros(sP0.size + 1)
-        X0[0] = run_params["tfin"] ##I introduce an additional free parameter being the time of measurement, given the scales of the transitions are arbirary. This is poorly defined in principle but perhaps speeds up optimization?
+        X0[0] = self.run_params["tfin"] ##I introduce an additional free parameter being the time of measurement, given the scales of the transitions are arbirary. This is poorly defined in principle but perhaps speeds up optimization?
         X0[1:] = sP0
         res = minimize(get_cost, X0, method="Nelder-Mead", options=self.opt_params["minimizer_params"])
         sP_opt = res.x[1:]
         tfin_opt = res.x[0]
-        return mrkvS, sP_opt,tfin_opt
+        return mrkvS, sP_opt,tfin_opt,res.fun
 
     def fit_multiple(self):
         self.results = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(self.fit)() for i in range(self.opt_params["n_iter"]))
         self.mrkvSs = [r[0] for r in self.results]
         self.sP_opts = [r[1] for r in self.results]
         self.tfin_opts = [r[2] for r in self.results]
+        self.residuals = [r[3] for r in self.results]
         self.collapse_proportions_by_data_names()
         self.save_results()
 
@@ -332,7 +333,7 @@ class Markov_fit:
 
             for nm in self.data_names:
                 pd.DataFrame(self.proportions_by_data_names[nm][i]).to_csv(fldr + "/final_proportion_grouped/%s.csv"%nm)
-
+        pd.DataFrame({"index":np.arange(len(self.residuals)),"residual":self.residuals}).to_csv(self.session_folder + "/results/residuals.csv")
 
     def make_data_grids(self):
         a_unique, b_unique = np.unique(self.signalling_params["a"]), np.unique(self.signalling_params["b"])
