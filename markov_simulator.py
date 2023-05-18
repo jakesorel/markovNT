@@ -317,7 +317,7 @@ class Markov_fit:
             mkdir(fldr)
 
             df_sP = pd.DataFrame(self.sP_opts[i].reshape(self.mrkvSs[0].signalling_parameters.shape))
-            df_sP.columns = self.mrkvSs[i].markov.states
+            df_sP.columns = self.mrkvSs[i].markov.transitions_possible
             df_sP.index = ["beta0","beta1","beta2","mn","amp"]
             df_sP.to_csv(fldr + "/signal_params.csv")
 

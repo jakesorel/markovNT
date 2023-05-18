@@ -18,7 +18,7 @@ plot_params = {"colour_dict":{"A":plt.cm.Oranges,
                "vmax":0.7 ##this caps the highest proportion plotted.
                }
 
-opt_params = {"minimizer_params": {"maxiter": 10},  ##dial this for increasing precision.
+opt_params = {"minimizer_params": {"maxiter": 1000},  ##dial this for increasing precision.
               "n_iter": 8 ##The number of random initialisations you would like to run. This all runs in parallel.
               }
 
