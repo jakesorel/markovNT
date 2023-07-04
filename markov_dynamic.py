@@ -1,6 +1,7 @@
-from markov_simulator import Markov_fit
+from markov_simulator_dynamic import Markov_fit,Markov_signalling
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 transitions_possible = ("P->A","P->M","M->E","P->X")
 run_params = {"initial_state":"P", ##This is the state that all of the cells are initially found in
@@ -35,15 +36,15 @@ data_names = ["A","E","M"] ##these are the corresponding names of the columns in
 ##^^ This is set up such that you can assign multiple states to a given data column
 ## for example, state_names = ["A","M","ME"]; data_names = ["A","M","M"]
 
-markov_fit = Markov_fit(data_file="data/proportions_data.csv",
-                        results_folder="results",
-                        init_parameter_lims=init_parameter_lims,
-                        state_names=state_names,
-                        data_names=data_names,
-                        transitions_possible=transitions_possible,
-                        run_params=run_params,
-                        opt_params=opt_params,
-                        plot_params=plot_params)
-markov_fit.fit_multiple()
-markov_fit.plot_fits()
-markov_fit.plot_transitions()
+df = pd.read_csv("data/proportions_data.csv")
+signalling_params = {'lims': init_parameter_lims,  # amp, amplitude of the response at saturating signal.
+                          'a': df["a"].values, 'b': df["b"].values}
+
+df_dynamic = pd.read_csv("data/switching_data_values.csv")
+dynamic_signalling_params = {'lims': init_parameter_lims,  # amp, amplitude of the response at saturating signal.
+                                  'a_init': df_dynamic["a_init"].values,
+                                  'b_init': df_dynamic["b_init"].values,
+                                  'a_fin': df_dynamic["a_init"].values, 'b_fin': df_dynamic["b_init"].values,
+                                  't_change': df_dynamic["t_change"].values}
+
+mrkvS = Markov_signalling(transitions_possible, run_params, signalling_params,dynamic_signalling_params)
