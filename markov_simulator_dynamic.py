@@ -377,8 +377,13 @@ class Markov_fit:
 
         mrkvS.set_initial_signalling_params()
         sP0 = mrkvS.signalling_parameters.ravel()
+        lims = mrkvS.signalling_params["lims"]
+        bounds = []
+        for i in range(mrkvS.signalling_parameters.shape[0]):
+            for j in range(mrkvS.signalling_parameters.shape[1]):
+                bounds.append((float(lims[i][0]),float(lims[i][1])))
         X0 = sP0.copy()
-        res = minimize(get_cost, X0, method="Nelder-Mead", options=self.opt_params["minimizer_params"])
+        res = minimize(get_cost, X0, method="Nelder-Mead", options=self.opt_params["minimizer_params"],bounds=bounds)
         sP_opt = res.x
         cost_static, cost_dynamic,cost_tot = get_cost(sP_opt,True)
         return mrkvS, sP_opt,cost_tot,cost_static, cost_dynamic

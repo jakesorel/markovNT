@@ -294,10 +294,15 @@ class Markov_fit:
 
         mrkvS.set_initial_signalling_params()
         sP0 = mrkvS.signalling_parameters.ravel()
+        lims = mrkvS.signalling_params["lims"]
+        bounds = []
+        for i in range(mrkvS.signalling_parameters.shape[0]):
+            for j in range(mrkvS.signalling_parameters.shape[1]):
+                bounds.append((float(lims[i][0]),float(lims[i][1])))
         X0 = np.zeros(sP0.size + 1)
         X0[0] = self.run_params["tfin"] ##I introduce an additional free parameter being the time of measurement, given the scales of the transitions are arbirary. This is poorly defined in principle but perhaps speeds up optimization?
         X0[1:] = sP0
-        res = minimize(get_cost, X0, method="Nelder-Mead", options=self.opt_params["minimizer_params"])
+        res = minimize(get_cost, X0, method="Nelder-Mead", options=self.opt_params["minimizer_params"],bounds=bounds)
         sP_opt = res.x[1:]
         tfin_opt = res.x[0]
         return mrkvS, sP_opt,tfin_opt,res.fun
